@@ -79,8 +79,8 @@ A **sensitivity analysis** was conducted across 7 weight scenarios (±0.2 range)
 | Profile | TOP 1 | TOP 2 | TOP 3 |
 |---------|-------|-------|-------|
 | Conservative | Dobong-gu (Row house) | Gwanak-gu (Single-family) | Jungnang-gu (Row house) |
-| Balanced | — | — | — |
-| Aggressive | Geumcheon-gu (Officetel) | Jungnang-gu (Row house) | Seodaemun-gu (Row house) |
+| Balanced | Eunpyeong-gu (Row house) | Geumcheon-gu (Row house) | Jungnang-gu (Row house) |
+| Aggressive | Jungnang-gu (Row house) | Jungnang-gu (Officetel) | Geumcheon-gu (Officetel) |
 
 > ※ Exact results depend on the dataset. Run the notebook to reproduce current rankings.
 
@@ -108,33 +108,6 @@ seoul-real-estate-analysis/
 
 ---
 
-## ⚙️ Setup & Usage
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/YOUR_USERNAME/seoul-real-estate-analysis.git
-cd seoul-real-estate-analysis
-```
-
-### 2. Install dependencies
-```bash
-pip install pandas numpy matplotlib seaborn
-```
-
-### 3. Download the data
-Download the Seoul Real Estate Transaction dataset from [Seoul Open Data Plaza](https://data.seoul.go.kr/) and place the annual CSV files inside the `data/` folder:
-```
-data/2018.csv, data/2019.csv, ..., data/2024.csv
-```
-
-### 4. Run the notebooks
-Run in this order:
-```
-1. Seoul_Real_Estate_Market_Overview.ipynb      ← Start here for EDA & trends
-2. Seoul_Real_Estate_Investment_Analysis.ipynb  ← Investment scoring & recommendations
-```
-
----
 
 ## 🔍 Notebook Contents
 
@@ -187,9 +160,9 @@ Run in this order:
 
 ## 👤 Author
 
-**Donguk Kim (Joshua)**  
+**Joshua Kim**  
 Data Analyst | Marketing · E-commerce · Business Analytics  
-📧 Violet8436@naver.com  
+📧 Jkim43844@naver.com  
 🔗 [LinkedIn](https://www.linkedin.com/in/joshua-kim-87b478263/)
 
 ---
