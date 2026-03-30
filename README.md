@@ -84,7 +84,16 @@ A **sensitivity analysis** was conducted across 7 weight scenarios (±0.2 range)
 
 > ※ Exact results depend on the dataset. Run the notebook to reproduce current rankings.
 
----
+### 💡 Interpretation (So What?)
+
+- Conservative portfolios consistently favor **low-volatility, undervalued outer districts**  
+  → Indicates capital preservation strategy dominates return maximization
+
+- Aggressive portfolios concentrate in **mid-tier districts with high growth momentum**  
+  → Suggests emerging districts outperform traditional premium areas
+
+- Jungnang-gu appears in both Balanced and Aggressive profiles  
+  → Signals a **structurally undervalued yet high-growth district**
 
 ## 🗂️ Project Structure
 
