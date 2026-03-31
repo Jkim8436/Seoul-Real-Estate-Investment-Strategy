@@ -117,6 +117,12 @@ seoul-real-estate-analysis/
 
 ---
 
+## 🚀 What Makes This Project Different?
+
+- Goes beyond price-level analysis → incorporates **risk (volatility)**
+- Produces **actionable investment recommendations**, not just insights
+- Validates results via **sensitivity analysis (robustness check)**
+- Combines **econometric thinking + business decision framework**
 
 ## 🔍 Notebook Contents
 
@@ -163,7 +169,8 @@ seoul-real-estate-analysis/
 | Macroeconomic variables not included | Add interest rate, jeonse-to-price ratio data |
 | No future growth signals | Incorporate development plans (transport, redevelopment) |
 | Static weights | Build an interactive dashboard for custom weight input |
-| Historical analysis only | Add time-series forecasting for price projection |
+| Historical analysis only | Add time-series forecasting for price projection|
+| No forward-looking indicators | Incorporate leading indicators (e.g., construction permits, population inflow)|
 
 ---
 
