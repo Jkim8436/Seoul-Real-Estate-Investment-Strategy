@@ -178,7 +178,7 @@ seoul-real-estate-analysis/
 
 **Joshua Kim**  
 Data Analyst | Marketing · E-commerce · Business Analytics  
-📧 Jkim43844@naver.com  
+📧 Jkim43844@gmail.com 
 🔗 [LinkedIn](https://www.linkedin.com/in/joshua-kim-87b478263/)
 
 ---
