@@ -101,7 +101,8 @@ statistically meaningless (p = 0.977), and its ~20% missingness was
 quietly costing a quarter of the usable sample. Removing it recovered
 ~150K rows with no loss of explanatory power.)*
 
-<img width="803" height="707" alt="Screenshot 2026-07-30 at 2 39 53 PM" src="https://github.com/user-attachments/assets/9c02f6f3-808e-44e8-ae8a-9aa0e24efbcd" />
+<!-- IMAGE: assets/regression_district_effects.png — Regression-adjusted district price premium/discount --> <img width="765" height="685" alt="Screenshot 2026-07-30 at 2 58 21 PM" src="https://github.com/user-attachments/assets/bdf74767-8177-4638-9513-60e0ac07e4f8" />
+
 
 **Temporal holdout — does this predict forward?**
 Everything above describes the past. So the framework was tested
@@ -122,13 +123,14 @@ locations over the undervalued, stable ones this framework targets. A
 static, backward-looking scoring system has a real blind spot during a
 regime shift, and that's the honest answer to question 3 above.
 
-<img width="732" height="390" alt="Screenshot 2026-07-30 at 2 44 56 PM" src="https://github.com/user-attachments/assets/5b40de4e-4619-429d-af0f-1242c724b6ce" />
+<!-- IMAGE: assets/holdout_validation.png — Holdout validation: training-window TOP3 actual growth vs. Seoul average --> <img width="810" height="446" alt="Screenshot 2026-07-30 at 3 01 28 PM" src="https://github.com/user-attachments/assets/65aed280-bc9f-4a00-80d1-d8b13ba4e024" />
+
 
 Weight choice wasn't the problem, separately: a sensitivity check across
 7 weight scenarios (±0.2) shows the TOP3 ranking stays stable. The
 holdout miss reflects a genuine market shift, not a fragile model.
 
-<img width="898" height="346" alt="Screenshot 2026-07-30 at 2 45 53 PM" src="https://github.com/user-attachments/assets/646342bc-4078-47cf-9a60-ed85e8790050" />
+<!-- IMAGE: assets/sensitivity_analysis.png — TOP5 ranking stability across weight scenarios --> <img width="1010" height="390" alt="Screenshot 2026-07-30 at 3 04 17 PM" src="https://github.com/user-attachments/assets/78d4777d-50ca-4a28-84e3-8197eeb1b68b" />
 
 
 ---
@@ -144,14 +146,18 @@ holdout miss reflects a genuine market shift, not a fragile model.
   rebounded, pointing to thinner, higher-end-skewed demand rather than a
   broad recovery
 
-<img width="906" height="560" alt="Screenshot 2026-07-30 at 2 46 28 PM" src="https://github.com/user-attachments/assets/07c61cfb-26ba-427b-872f-997edcb8c468" />
+<!-- IMAGE: assets/market_overview.png — Market overview: price, price/pyeong, volume, and YoY growth by year --> <img width="1010" height="633" alt="Screenshot 2026-07-30 at 2 59 56 PM" src="https://github.com/user-attachments/assets/72b02f87-b962-48c6-b4f9-48ab32c5bf9c" />
 
-<img width="711" height="577" alt="Screenshot 2026-07-30 at 2 46 57 PM" src="https://github.com/user-attachments/assets/b4546824-8b66-4a67-af26-4a19807ab0f7" />
+<!-- IMAGE: assets/district_year_heatmap.png — District x year price-per-pyeong heatmap --> <img width="798" height="645" alt="Screenshot 2026-07-30 at 3 00 25 PM" src="https://github.com/user-attachments/assets/dc0ef8e6-9f28-4d3c-be5f-155d215f4eff" />
 
 
 ---
 
 ## Recommendations
+
+The table below is the final building-type drill-down: within each
+profile's TOP3 districts, building types are re-scored to find the best
+district × building-type combination.
 
 | Profile | TOP 1 | TOP 2 | TOP 3 |
 |---|---|---|---|
@@ -159,15 +165,27 @@ holdout miss reflects a genuine market shift, not a fragile model.
 | Balanced | Jungnang-gu (Row house) | Eunpyeong-gu (Row house) | Geumcheon-gu (Row house) |
 | Aggressive | Jungnang-gu (Officetel) | Geumcheon-gu (Officetel) | Jungnang-gu (Row house) |
 
-<img width="920" height="323" alt="Screenshot 2026-07-30 at 2 47 39 PM" src="https://github.com/user-attachments/assets/0a7606f6-1404-4578-93f2-3f72f5be2451" />
+This builds on the plain district-level ranking (TOP5 districts by
+score, before building type is factored in):
 
-**Dong-level drill-down.** Within each profile's TOP3, a further pass
-narrows to the specific dong (neighborhood) driving the signal —
-Jungnang-gu's comes mainly from Myeonmok-dong and Junghwa-dong across all
-three profiles. Dong-level estimates rest on far fewer transactions than
+<!-- IMAGE: assets/top5_districts_by_profile.png — TOP5 districts by investor profile, district-level score only --> <img width="999" height="529" alt="Screenshot 2026-07-30 at 3 05 37 PM" src="https://github.com/user-attachments/assets/cb4702e5-cdc4-44f6-94ed-d0317f0909f8" />
+
+
+**Dong-level drill-down.** A separate pass narrows each profile's TOP3
+*districts* down to the specific dong (neighborhood) driving the
+signal — not a further split of the building-type table above, but an
+independent re-scoring at the neighborhood level. Jungnang-gu's signal
+comes mainly from Myeonmok-dong and Junghwa-dong across all three
+profiles. Dong-level estimates rest on far fewer transactions than
 district-level ones, so any dong under 100 transactions, or missing data
-in more than 2 of the 7 years, is flagged low-confidence rather than
-folded in silently.
+in more than 2 of the 7 years, is flagged low-confidence (shown as gray
+bars) rather than folded in silently — for example, Seodaemun-gu's
+Daesin-dong shows an outlier score under the Aggressive profile driven
+by fewer than 100 transactions, and should be read as noise, not signal.
+
+<!-- IMAGE: assets/dong_level_scores.png — TOP5 dongs within each profile's TOP3 districts, with low-confidence dongs shown in gray --> <img width="1008" height="365" alt="Screenshot 2026-07-30 at 3 05 08 PM" src="https://github.com/user-attachments/assets/d4f0ba3d-615f-4c49-a1b9-b53b071b8887" />
+
+
 
 ---
 
