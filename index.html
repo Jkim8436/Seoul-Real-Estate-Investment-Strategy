@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seoul Real Estate Investment Screening Dashboard</title>
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f5f4f0;
+    --color-background-tertiary: #efeee9;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #5f5e5a;
+    --color-text-tertiary: #888780;
+    --color-border-tertiary: rgba(44,44,42,0.15);
+    --color-border-secondary: rgba(44,44,42,0.3);
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background-primary: #1c1c1a;
+      --color-background-secondary: #2c2c2a;
+      --color-background-tertiary: #232321;
+      --color-text-primary: #f1efe8;
+      --color-text-secondary: #b4b2a9;
+      --color-text-tertiary: #888780;
+      --color-border-tertiary: rgba(241,239,232,0.15);
+      --color-border-secondary: rgba(241,239,232,0.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1rem;
+    background: var(--color-background-tertiary);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    display: flex;
+    justify-content: center;
+  }
+  h1 { font-size: 22px; font-weight: 500; margin: 0; }
+  #root { width: 100%; max-width: 720px; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<div id="root"><div id="app"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
+
+const DISTRICT_DATA = [
+  { district: "중랑구", name_en: "Jungnang-gu", growth: 9.617, vol: 4.991, price_ratio: 0.783, cons: 3.019, bal: 3.006, aggr: 2.994 },
+  { district: "도봉구", name_en: "Dobong-gu", growth: 6.240, vol: 5.374, price_ratio: 0.591, cons: 2.495, bal: 1.201, aggr: 0.612 },
+  { district: "관악구", name_en: "Gwanak-gu", growth: 6.662, vol: 4.459, price_ratio: 0.760, cons: 2.483, bal: 1.842, aggr: 1.221 },
+  { district: "금천구", name_en: "Geumcheon-gu", growth: 9.934, vol: 6.221, price_ratio: 0.768, cons: 2.079, bal: 2.797, aggr: 3.120 },
+  { district: "강북구", name_en: "Gangbuk-gu", growth: 6.517, vol: 5.606, price_ratio: 0.613, cons: 2.362, bal: 1.550, aggr: 0.749 },
+  { district: "은평구", name_en: "Eunpyeong-gu", growth: 8.261, vol: 5.821, price_ratio: 0.773, cons: 1.750, bal: 1.872, aggr: 1.588 },
+  { district: "서대문구", name_en: "Seodaemun-gu", growth: 9.568, vol: 6.646, price_ratio: 1.002, cons: 0.421, bal: 1.297, aggr: 1.759 },
+  { district: "성북구", name_en: "Seongbuk-gu", growth: 9.799, vol: 9.936, price_ratio: 0.900, cons: 0.702, bal: 1.288, aggr: 1.612 },
+  { district: "구로구", name_en: "Guro-gu", growth: 7.320, vol: 6.189, price_ratio: 0.744, cons: 1.680, bal: 1.412, aggr: 1.121 },
+  { district: "노원구", name_en: "Nowon-gu", growth: 8.664, vol: 11.838, price_ratio: 0.836, cons: 0.330, bal: 0.870, aggr: 1.223 },
+  { district: "강서구", name_en: "Gangseo-gu", growth: 6.914, vol: 6.572, price_ratio: 0.805, cons: 1.234, bal: 1.144, aggr: 0.914 },
+  { district: "양천구", name_en: "Yangcheon-gu", growth: 9.363, vol: 15.631, price_ratio: 0.967, cons: -0.712, bal: 0.601, aggr: 1.221 },
+  { district: "동대문구", name_en: "Dongdaemun-gu", growth: 9.260, vol: 10.322, price_ratio: 0.983, cons: -0.319, bal: 0.774, aggr: 1.221 },
+  { district: "종로구", name_en: "Jongno-gu", growth: 5.935, vol: 6.564, price_ratio: 0.870, cons: 0.964, bal: 0.786, aggr: 0.474 },
+  { district: "동작구", name_en: "Dongjak-gu", growth: 9.255, vol: 9.123, price_ratio: 1.146, cons: -0.782, bal: 0.354, aggr: 0.918 },
+  { district: "영등포구", name_en: "Yeongdeungpo-gu", growth: 8.702, vol: 6.454, price_ratio: 1.115, cons: -0.176, bal: 0.696, aggr: 1.153 },
+  { district: "중구", name_en: "Jung-gu", growth: 7.495, vol: 8.579, price_ratio: 1.143, cons: -0.712, bal: 0.174, aggr: 0.577 },
+  { district: "강동구", name_en: "Gangdong-gu", growth: 9.144, vol: 9.983, price_ratio: 1.143, cons: -0.680, bal: 0.428, aggr: 1.041 },
+  { district: "마포구", name_en: "Mapo-gu", growth: 7.916, vol: 7.014, price_ratio: 1.194, cons: -0.883, bal: 0.037, aggr: 0.542 },
+  { district: "송파구", name_en: "Songpa-gu", growth: 6.360, vol: 9.639, price_ratio: 1.191, cons: -1.155, bal: -0.166, aggr: 0.315 },
+  { district: "용산구", name_en: "Yongsan-gu", growth: 8.634, vol: 8.192, price_ratio: 1.513, cons: -2.005, bal: -0.395, aggr: 0.629 },
+  { district: "성동구", name_en: "Seongdong-gu", growth: 9.070, vol: 10.421, price_ratio: 1.436, cons: -1.700, bal: -0.216, aggr: 0.735 },
+  { district: "강남구", name_en: "Gangnam-gu", growth: 4.355, vol: 8.845, price_ratio: 1.403, cons: -1.428, bal: -1.213, aggr: -1.099 },
+  { district: "서초구", name_en: "Seocho-gu", growth: 4.864, vol: 6.233, price_ratio: 1.244, cons: -0.834, bal: -0.665, aggr: -0.573 },
+];
+
+const PROFILE_KEY = { Conservative: "cons", Balanced: "bal", Aggressive: "aggr" };
+const PROFILE_COLOR = { Conservative: "#378ADD", Balanced: "#639922", Aggressive: "#D4537E" };
+const PROFILE_COLOR_DARK = { Conservative: "#042C53", Balanced: "#173404", Aggressive: "#4B1528" };
+
+const MARKET_TREND = [
+  { year: 2018, price_py: 2371, volume: 163730 },
+  { year: 2019, price_py: 2793, volume: 128341 },
+  { year: 2020, price_py: 2923, volume: 174126 },
+  { year: 2021, price_py: 3176, volume: 130921 },
+  { year: 2022, price_py: 3115, volume: 61399 },
+  { year: 2023, price_py: 3726, volume: 65371 },
+  { year: 2024, price_py: 4126, volume: 73457 },
+];
+
+const HOLDOUT = [
+  { profile: "Conservative", actual: 7.29 },
+  { profile: "Balanced", actual: 5.61 },
+  { profile: "Aggressive", actual: 5.32 },
+];
+
+const REGRESSION_EFFECTS = [
+  { district: "Yongsan-gu", pct: -2.78 },
+  { district: "Seocho-gu", pct: -9.01 },
+  { district: "Seongdong-gu", pct: -19.43 },
+  { district: "Songpa-gu", pct: -20.75 },
+  { district: "Mapo-gu", pct: -24.18 },
+  { district: "Guro-gu", pct: -52.00 },
+  { district: "Gangbuk-gu", pct: -56.56 },
+  { district: "Dobong-gu", pct: -57.28 },
+];
+
+const RECOMMENDATIONS = {
+  Conservative: [
+    { rank: 1, district: "중랑구", type: "Row house", dong: "Myeonmok-dong" },
+    { rank: 2, district: "관악구", type: "Single-family", dong: "—" },
+    { rank: 3, district: "도봉구", type: "Row house", dong: "Banghak-dong" },
+  ],
+  Balanced: [
+    { rank: 1, district: "중랑구", type: "Row house", dong: "Myeonmok-dong" },
+    { rank: 2, district: "은평구", type: "Row house", dong: "Eungam-dong" },
+    { rank: 3, district: "금천구", type: "Row house", dong: "Gasan-dong" },
+  ],
+  Aggressive: [
+    { rank: 1, district: "중랑구", type: "Officetel", dong: "Myeonmok-dong" },
+    { rank: 2, district: "금천구", type: "Officetel", dong: "Gasan-dong" },
+    { rank: 3, district: "중랑구", type: "Row house", dong: "Junghwa-dong" },
+  ],
+};
+
+const BUILDING_TYPES = {
+  Conservative: [
+    { district: "중랑구", type: "Row house", score: 2.067 },
+    { district: "관악구", type: "Single-family", score: 1.521 },
+    { district: "도봉구", type: "Row house", score: 1.120 },
+    { district: "관악구", type: "Row house", score: 0.575 },
+    { district: "중랑구", type: "Single-family", score: -1.584 },
+  ],
+  Balanced: [
+    { district: "중랑구", type: "Row house", score: 2.517 },
+    { district: "은평구", type: "Row house", score: 1.241 },
+    { district: "금천구", type: "Row house", score: 1.156 },
+    { district: "금천구", type: "Officetel", score: 0.867 },
+    { district: "은평구", type: "Apartment", score: 0.724 },
+  ],
+  Aggressive: [
+    { district: "중랑구", type: "Officetel", score: 3.429 },
+    { district: "금천구", type: "Officetel", score: 3.170 },
+    { district: "중랑구", type: "Row house", score: 2.966 },
+    { district: "금천구", type: "Apartment", score: 2.189 },
+    { district: "중랑구", type: "Apartment", score: 1.469 },
+  ],
+};
+
+const DONG_DATA = {
+  Conservative: [
+    { district: "중랑구", dong: "면목동", score: 3.624, n: 9461, low_conf: false },
+    { district: "중랑구", dong: "중화동", score: 3.533, n: 3532, low_conf: false },
+    { district: "도봉구", dong: "방학동", score: 3.467, n: 7177, low_conf: false },
+    { district: "중랑구", dong: "망우동", score: 2.317, n: 2955, low_conf: false },
+    { district: "도봉구", dong: "창동", score: 1.600, n: 11530, low_conf: false },
+  ],
+  Balanced: [
+    { district: "중랑구", dong: "면목동", score: 4.212, n: 9461, low_conf: false },
+    { district: "은평구", dong: "응암동", score: 4.108, n: 7580, low_conf: false },
+    { district: "중랑구", dong: "중화동", score: 3.772, n: 3532, low_conf: false },
+    { district: "금천구", dong: "가산동", score: 3.083, n: 3388, low_conf: false },
+    { district: "중랑구", dong: "망우동", score: 2.282, n: 2955, low_conf: false },
+  ],
+  Aggressive: [
+    { district: "서대문구", dong: "대신동", score: 17.847, n: 69, low_conf: true },
+    { district: "중랑구", dong: "면목동", score: 4.830, n: 9461, low_conf: false },
+    { district: "중랑구", dong: "중화동", score: 3.969, n: 3532, low_conf: false },
+    { district: "금천구", dong: "가산동", score: 3.130, n: 3388, low_conf: false },
+    { district: "서대문구", dong: "홍제동", score: 2.334, n: 4459, low_conf: false },
+  ],
+};
+
+function num(n, d = 1) { return Number(n).toFixed(d); }
+
+function ProfileSwitch({ profile, setProfile }) {
+  return (
+    <div style={{ display: "flex", gap: "6px" }}>
+      {Object.keys(PROFILE_KEY).map((p) => (
+        <button
+          key={p}
+          onClick={() => setProfile(p)}
+          style={{
+            padding: "6px 14px",
+            borderRadius: "var(--border-radius-md)",
+            border: p === profile ? `1.5px solid ${PROFILE_COLOR[p]}` : "0.5px solid var(--color-border-tertiary)",
+            background: p === profile ? PROFILE_COLOR[p] + "1a" : "transparent",
+            color: p === profile ? PROFILE_COLOR_DARK[p] : "var(--color-text-secondary)",
+            fontSize: "13px",
+            fontWeight: p === profile ? 500 : 400,
+            cursor: "pointer",
+          }}
+        >
+          {p}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function KpiCard({ label, value, sub }) {
+  return (
+    <div style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-md)", padding: "0.85rem 1rem" }}>
+      <p style={{ fontSize: "12px", color: "var(--color-text-secondary)", margin: "0 0 4px" }}>{label}</p>
+      <p style={{ fontSize: "22px", fontWeight: 500, margin: 0 }}>{value}</p>
+      {sub && <p style={{ fontSize: "11px", color: "var(--color-text-tertiary)", margin: "2px 0 0" }}>{sub}</p>}
+    </div>
+  );
+}
+
+function Top5Chart({ profile }) {
+  const key = PROFILE_KEY[profile];
+  const sorted = useMemo(() => [...DISTRICT_DATA].sort((a, b) => b[key] - a[key]).slice(0, 5), [key]);
+  const max = sorted[0][key];
+  return (
+    <div>
+      {sorted.map((d, i) => (
+        <div key={d.district} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: i === sorted.length - 1 ? 0 : "8px" }}>
+          <span style={{ fontSize: "13px", width: "72px", flexShrink: 0, color: "var(--color-text-secondary)" }}>{d.name_en}</span>
+          <div style={{ flex: 1, background: "var(--color-background-secondary)", borderRadius: "4px", height: "20px", position: "relative" }}>
+            <div style={{ width: `${(d[key] / max) * 100}%`, background: PROFILE_COLOR[profile], height: "100%", borderRadius: "4px", minWidth: "2px" }} />
+          </div>
+          <span style={{ fontSize: "12px", width: "34px", textAlign: "right", color: "var(--color-text-secondary)" }}>{num(d[key], 2)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ScatterChart({ profile }) {
+  const key = PROFILE_KEY[profile];
+  const top3Set = useMemo(() => new Set([...DISTRICT_DATA].sort((a, b) => b[key] - a[key]).slice(0, 3).map((d) => d.district)), [key]);
+  const w = 600, h = 260, pad = { l: 40, r: 16, t: 12, b: 32 };
+  const priceMin = 0.55, priceMax = 1.55, growthMin = 4, growthMax = 10.5;
+  const x = (v) => pad.l + ((v - priceMin) / (priceMax - priceMin)) * (w - pad.l - pad.r);
+  const y = (v) => h - pad.b - ((v - growthMin) / (growthMax - growthMin)) * (h - pad.t - pad.b);
+  const avgPrice = DISTRICT_DATA.reduce((s, d) => s + d.price_ratio, 0) / DISTRICT_DATA.length;
+  const avgGrowth = DISTRICT_DATA.reduce((s, d) => s + d.growth, 0) / DISTRICT_DATA.length;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: "260px" }}>
+      <line x1={pad.l} y1={y(avgGrowth)} x2={w - pad.r} y2={y(avgGrowth)} stroke="var(--color-border-tertiary)" strokeDasharray="3 3" />
+      <line x1={x(avgPrice)} y1={pad.t} x2={x(avgPrice)} y2={h - pad.b} stroke="var(--color-border-tertiary)" strokeDasharray="3 3" />
+      <text x={pad.l} y={h - 8} fontSize="11" fill="var(--color-text-tertiary)">Cheaper</text>
+      <text x={w - pad.r} y={h - 8} fontSize="11" fill="var(--color-text-tertiary)" textAnchor="end">Pricier</text>
+      <text x={pad.l - 6} y={pad.t + 8} fontSize="11" fill="var(--color-text-tertiary)" textAnchor="end">High growth</text>
+      {DISTRICT_DATA.map((d) => {
+        const isTop = top3Set.has(d.district);
+        return (
+          <g key={d.district}>
+            <circle
+              cx={x(d.price_ratio)} cy={y(d.growth)}
+              r={isTop ? 6 : 4}
+              fill={isTop ? PROFILE_COLOR[profile] : "var(--color-border-secondary)"}
+              opacity={isTop ? 1 : 0.55}
+            />
+            {isTop && (
+              <text x={x(d.price_ratio) + 8} y={y(d.growth) + 4} fontSize="11" fill={PROFILE_COLOR_DARK[profile]} fontWeight="500">
+                {d.name_en}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function TrendChart() {
+  const w = 600, h = 220, pad = { l: 44, r: 44, t: 12, b: 28 };
+  const years = MARKET_TREND.map((d) => d.year);
+  const priceMin = 2000, priceMax = 4300;
+  const volMin = 0, volMax = 190000;
+  const x = (yr) => pad.l + ((yr - years[0]) / (years[years.length - 1] - years[0])) * (w - pad.l - pad.r);
+  const yPrice = (v) => h - pad.b - ((v - priceMin) / (priceMax - priceMin)) * (h - pad.t - pad.b);
+  const yVol = (v) => h - pad.b - ((v - volMin) / (volMax - volMin)) * (h - pad.t - pad.b);
+  const barW = 26;
+  const linePoints = MARKET_TREND.map((d) => `${x(d.year)},${yPrice(d.price_py)}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: "220px" }}>
+      {MARKET_TREND.map((d) => (
+        <rect key={d.year} x={x(d.year) - barW / 2} y={yVol(d.volume)} width={barW} height={h - pad.b - yVol(d.volume)} fill="#FAC775" opacity="0.6" />
+      ))}
+      <polyline points={linePoints} fill="none" stroke="#378ADD" strokeWidth="2.5" />
+      {MARKET_TREND.map((d) => (
+        <circle key={d.year} cx={x(d.year)} cy={yPrice(d.price_py)} r="3.5" fill="#378ADD" />
+      ))}
+      {years.map((yr) => (
+        <text key={yr} x={x(yr)} y={h - 8} fontSize="11" fill="var(--color-text-tertiary)" textAnchor="middle">{yr}</text>
+      ))}
+    </svg>
+  );
+}
+
+function BuildingTypeChart({ profile }) {
+  const data = BUILDING_TYPES[profile];
+  const max = Math.max(...data.map((d) => Math.abs(d.score)));
+  const min = Math.min(...data.map((d) => d.score), 0);
+  const w = 600, h = data.length * 30 + 6, pad = { l: 130, r: 50 };
+  const zeroX = pad.l + (Math.abs(min) / (max - min)) * (w - pad.l - pad.r);
+  const scale = (w - pad.l - pad.r) / (max - min);
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: `${h}px` }}>
+      <line x1={zeroX} y1={0} x2={zeroX} y2={h - 6} stroke="var(--color-border-secondary)" />
+      {data.map((d, i) => {
+        const barX = d.score < 0 ? zeroX - Math.abs(d.score) * scale : zeroX;
+        const barW = Math.abs(d.score) * scale;
+        const y = i * 30 + 4;
+        return (
+          <g key={d.district + d.type}>
+            <text x={pad.l - 8} y={y + 14} fontSize="11" fill="var(--color-text-secondary)" textAnchor="end">{d.district} — {d.type}</text>
+            <rect x={barX} y={y} width={Math.max(barW, 1)} height="18" fill={d.score >= 0 ? PROFILE_COLOR[profile] : "#D4537E"} rx="2" />
+            <text x={d.score < 0 ? barX - 4 : barX + barW + 4} y={y + 14} fontSize="11" fill="var(--color-text-secondary)" textAnchor={d.score < 0 ? "end" : "start"}>
+              {num(d.score, 2)}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function DongChart({ profile }) {
+  const data = DONG_DATA[profile];
+  const max = Math.max(...data.map((d) => d.score));
+  return (
+    <div>
+      {data.map((d, i) => (
+        <div key={d.district + d.dong} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: i === data.length - 1 ? 0 : "7px" }}>
+          <span style={{ fontSize: "12px", width: "110px", flexShrink: 0, color: "var(--color-text-secondary)" }}>{d.district} · {d.dong}</span>
+          <div style={{ flex: 1, background: "var(--color-background-secondary)", borderRadius: "4px", height: "18px", position: "relative" }}>
+            <div style={{ width: `${Math.max((d.score / max) * 100, 2)}%`, background: d.low_conf ? "var(--color-border-secondary)" : PROFILE_COLOR[profile], height: "100%", borderRadius: "4px" }} />
+          </div>
+          <span style={{ fontSize: "11px", width: "40px", textAlign: "right", color: "var(--color-text-secondary)" }}>{num(d.score, 2)}</span>
+          {d.low_conf && (
+            <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "4px", background: "var(--color-background-secondary)", color: "var(--color-text-tertiary)", whiteSpace: "nowrap" }}>
+              n={d.n}
+            </span>
+          )}
+        </div>
+      ))}
+      {data.some((d) => d.low_conf) && (
+        <p style={{ fontSize: "11px", color: "var(--color-text-tertiary)", margin: "8px 0 0" }}>
+          Gray bar = fewer than 100 transactions — treat as low-confidence, not signal.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function HoldoutChart() {
+  const w = 600, h = 200, pad = { l: 16, r: 16, t: 12, b: 30 };
+  const max = 11;
+  const barGap = 40;
+  const barW = 90;
+  const startX = pad.l + 40;
+  const yFor = (v) => h - pad.b - (v / max) * (h - pad.t - pad.b);
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: "200px" }}>
+      <line x1={pad.l} y1={yFor(9.53)} x2={w - pad.r} y2={yFor(9.53)} stroke="#E24B4A" strokeDasharray="4 3" strokeWidth="1.5" />
+      <text x={w - pad.r} y={yFor(9.53) - 6} fontSize="11" fill="#A32D2D" textAnchor="end">Seoul avg 9.53%</text>
+      {HOLDOUT.map((d, i) => {
+        const cx = startX + i * (barW + barGap);
+        return (
+          <g key={d.profile}>
+            <rect x={cx} y={yFor(d.actual)} width={barW} height={h - pad.b - yFor(d.actual)} fill={PROFILE_COLOR[d.profile]} rx="3" />
+            <text x={cx + barW / 2} y={yFor(d.actual) - 6} fontSize="12" fontWeight="500" fill="var(--color-text-primary)" textAnchor="middle">{d.actual}%</text>
+            <text x={cx + barW / 2} y={h - 10} fontSize="11" fill="var(--color-text-secondary)" textAnchor="middle">{d.profile}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function RegressionChart() {
+  const w = 600, h = 260, pad = { l: 90, r: 50, t: 8, b: 8 };
+  const min = -60, max = 5;
+  const zeroX = pad.l + ((0 - min) / (max - min)) * (w - pad.l - pad.r);
+  const x = (v) => pad.l + ((v - min) / (max - min)) * (w - pad.l - pad.r);
+  const rowH = 30;
+  return (
+    <svg viewBox={`0 0 ${w} ${REGRESSION_EFFECTS.length * rowH + 10}`} style={{ width: "100%", height: `${REGRESSION_EFFECTS.length * rowH + 10}px` }}>
+      <line x1={zeroX} y1={0} x2={zeroX} y2={REGRESSION_EFFECTS.length * rowH} stroke="var(--color-border-secondary)" strokeWidth="1" />
+      {REGRESSION_EFFECTS.map((d, i) => {
+        const barX = d.pct < 0 ? x(d.pct) : zeroX;
+        const barW = Math.abs(x(d.pct) - zeroX);
+        const y = i * rowH + 5;
+        return (
+          <g key={d.district}>
+            <text x={pad.l - 8} y={y + 14} fontSize="11" fill="var(--color-text-secondary)" textAnchor="end">{d.district}</text>
+            <rect x={barX} y={y} width={Math.max(barW, 1)} height="18" fill={d.pct < 0 ? "#D4537E" : "#FAC775"} rx="2" />
+            <text x={d.pct < 0 ? barX - 4 : barX + barW + 4} y={y + 14} fontSize="11" fill="var(--color-text-secondary)" textAnchor={d.pct < 0 ? "end" : "start"}>
+              {d.pct > 0 ? "+" : ""}{d.pct}%
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function ContributionChart({ profile }) {
+  const key = PROFILE_KEY[profile];
+  const top = useMemo(() => [...DISTRICT_DATA].sort((a, b) => b[key] - a[key])[0], [key]);
+  const growth_c = top.growth > 8 ? 1.0 : 0.3;
+  const price_c = (1 - top.price_ratio) * 1.5;
+  const vol_c = (8 - top.vol) / 8;
+  const total = top[key];
+  const w = 600, h = 140, pad = { l: 90, r: 60 };
+  const min = -1, max = 3.2;
+  const x = (v) => pad.l + ((v - min) / (max - min)) * (w - pad.l - pad.r);
+  const zeroX = x(0);
+  const rows = [
+    { label: "Growth", value: growth_c, color: "#5DCAA5" },
+    { label: "Price (undervaluation)", value: price_c, color: "#7F77DD" },
+    { label: "Volatility (stability)", value: vol_c, color: "#F0997B" },
+  ];
+  return (
+    <div>
+      <p style={{ fontSize: "13px", color: "var(--color-text-secondary)", margin: "0 0 10px" }}>
+        Why <strong style={{ fontWeight: 500 }}>{top.name_en}</strong> scores highest under {profile}
+      </p>
+      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: "140px" }}>
+        <line x1={zeroX} y1={0} x2={zeroX} y2={h - 24} stroke="var(--color-border-secondary)" />
+        {rows.map((r, i) => {
+          const y = i * 32 + 4;
+          const barX = r.value < 0 ? x(r.value) : zeroX;
+          const barW = Math.abs(x(r.value) - zeroX);
+          return (
+            <g key={r.label}>
+              <text x={pad.l - 8} y={y + 14} fontSize="11" fill="var(--color-text-secondary)" textAnchor="end">{r.label}</text>
+              <rect x={barX} y={y} width={Math.max(barW, 1)} height="18" fill={r.color} rx="2" />
+              <text x={x(r.value) + (r.value < 0 ? -4 : 4)} y={y + 14} fontSize="11" fill="var(--color-text-secondary)" textAnchor={r.value < 0 ? "end" : "start"}>
+                {r.value > 0 ? "+" : ""}{num(r.value, 2)}
+              </text>
+            </g>
+          );
+        })}
+        <text x={pad.l - 8} y={h - 8} fontSize="12" fontWeight="500" fill="var(--color-text-primary)" textAnchor="end">Composite score</text>
+        <text x={zeroX + 6} y={h - 8} fontSize="12" fontWeight="500" fill="var(--color-text-primary)">{num(total, 2)}</text>
+      </svg>
+    </div>
+  );
+}
+
+function Card({ title, sub, children }) {
+  return (
+    <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.1rem" }}>
+      <p style={{ fontSize: "13px", fontWeight: 500, margin: "0 0 2px" }}>{title}</p>
+      {sub && <p style={{ fontSize: "11px", color: "var(--color-text-tertiary)", margin: "0 0 10px" }}>{sub}</p>}
+      {!sub && <div style={{ marginBottom: "10px" }} />}
+      {children}
+    </div>
+  );
+}
+
+function Page1({ profile }) {
+  const key = PROFILE_KEY[profile];
+  const top1 = useMemo(() => [...DISTRICT_DATA].sort((a, b) => b[key] - a[key])[0], [key]);
+  const recs = RECOMMENDATIONS[profile];
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "14px" }}>
+        <KpiCard label="Analysis period" value="2018–2024" />
+        <KpiCard label="Transactions analyzed" value="746,088" sub="post-IQR cleaning" />
+        <KpiCard label="Seoul cumulative growth" value="56.2%" sub="price/pyeong, 2018→2024" />
+        <KpiCard label={profile + " top pick"} value={top1.name_en} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1.05fr 1fr", gap: "10px", marginBottom: "10px" }}>
+        <Card title="Top 5 districts" sub={profile + " profile, composite score"}>
+          <Top5Chart profile={profile} />
+        </Card>
+        <Card title="Price vs. growth" sub="Filled dots = current profile's top 3">
+          <ScatterChart profile={profile} />
+        </Card>
+      </div>
+
+      <div style={{ marginBottom: "10px" }}>
+        <Card title="Seoul market trend" sub="Line: price/pyeong (10k KRW) · bars: transaction volume">
+          <TrendChart />
+        </Card>
+      </div>
+
+      <Card title="Recommended shortlist" sub={profile + " — district × building type × dong"}>
+        <table style={{ width: "100%", fontSize: "12.5px", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+              <th style={{ textAlign: "left", padding: "6px 4px", color: "var(--color-text-secondary)", fontWeight: 400 }}>Rank</th>
+              <th style={{ textAlign: "left", padding: "6px 4px", color: "var(--color-text-secondary)", fontWeight: 400 }}>District</th>
+              <th style={{ textAlign: "left", padding: "6px 4px", color: "var(--color-text-secondary)", fontWeight: 400 }}>Building type</th>
+              <th style={{ textAlign: "left", padding: "6px 4px", color: "var(--color-text-secondary)", fontWeight: 400 }}>Best dong</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recs.map((r) => (
+              <tr key={r.rank} style={{ borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+                <td style={{ padding: "6px 4px" }}>{r.rank}</td>
+                <td style={{ padding: "6px 4px" }}>{r.district}</td>
+                <td style={{ padding: "6px 4px" }}>{r.type}</td>
+                <td style={{ padding: "6px 4px" }}>{r.dong}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+
+      <p style={{ fontSize: "12.5px", color: "var(--color-text-secondary)", marginTop: "12px", lineHeight: 1.6 }}>
+        <strong style={{ fontWeight: 500 }}>{profile} profile:</strong> {top1.name_en} combines {profile === "Conservative" ? "a below-average price and low volatility" : profile === "Aggressive" ? "high historical growth and a meaningful price discount" : "above-average growth with below-average volatility"}, giving it the highest composite score under this weighting.
+      </p>
+    </div>
+  );
+}
+
+function Page2({ profile }) {
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+        <Card title="Score contribution" sub="Decomposing the top pick's composite score">
+          <ContributionChart profile={profile} />
+        </Card>
+        <Card title="Holdout validation" sub="TOP3 (from 2018–21 data) vs. actual 2022–24 growth">
+          <HoldoutChart />
+        </Card>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+        <Card title="Building type score" sub={"Within " + profile + "'s TOP3 districts"}>
+          <BuildingTypeChart profile={profile} />
+        </Card>
+        <Card title="Dong-level TOP5" sub="Within TOP3 districts, confidence-flagged">
+          <DongChart profile={profile} />
+        </Card>
+      </div>
+
+      <div style={{ marginBottom: "10px" }}>
+        <Card title="Regression-adjusted district effect" sub="Price premium/discount net of building type, floor, age, year — 4 highest & 4 lowest shown">
+          <RegressionChart />
+        </Card>
+      </div>
+
+      <div style={{ background: "var(--color-background-secondary)", borderRadius: "var(--border-radius-lg)", padding: "1rem 1.1rem" }}>
+        <p style={{ fontSize: "13px", fontWeight: 500, margin: "0 0 6px" }}>Model limitations</p>
+        <p style={{ fontSize: "12.5px", color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
+          This dashboard is a screening tool for narrowing candidate districts from historical transaction
+          patterns. It excludes interest rates, jeonse-to-price ratios, redevelopment plans, and population
+          flow, and the holdout test above shows all three profiles underperformed the Seoul average in
+          2022–2024 — gains concentrated in already-premium districts during that period. It should not be
+          used as a standalone investment decision tool.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [profile, setProfile] = useState("Conservative");
+  const [page, setPage] = useState(1);
+
+  return (
+    <div style={{ maxWidth: "680px" }}>
+      <div style={{ marginBottom: "12px" }}>
+        <h1 style={{ margin: "0 0 4px" }}>Seoul real estate investment screening</h1>
+        <p style={{ fontSize: "12.5px", color: "var(--color-text-secondary)", margin: 0 }}>
+          2018–2024 transaction data · district, building type, and dong-level screening by investor profile
+        </p>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
+        <ProfileSwitch profile={profile} setProfile={setProfile} />
+        <div style={{ display: "flex", gap: "4px", background: "var(--color-background-secondary)", padding: "3px", borderRadius: "var(--border-radius-md)" }}>
+          <button
+            onClick={() => setPage(1)}
+            style={{ padding: "5px 12px", borderRadius: "6px", border: "none", background: page === 1 ? "var(--color-background-primary)" : "transparent", fontSize: "12.5px", fontWeight: page === 1 ? 500 : 400, cursor: "pointer", boxShadow: page === 1 ? "0 0 0 0.5px var(--color-border-tertiary)" : "none" }}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setPage(2)}
+            style={{ padding: "5px 12px", borderRadius: "6px", border: "none", background: page === 2 ? "var(--color-background-primary)" : "transparent", fontSize: "12.5px", fontWeight: page === 2 ? 500 : 400, cursor: "pointer", boxShadow: page === 2 ? "0 0 0 0.5px var(--color-border-tertiary)" : "none" }}
+          >
+            Validation
+          </button>
+        </div>
+      </div>
+
+      {page === 1 ? <Page1 profile={profile} /> : <Page2 profile={profile} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(<App />);
+</script>
+</body>
+</html>
