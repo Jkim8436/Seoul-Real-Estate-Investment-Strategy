@@ -101,7 +101,7 @@ statistically meaningless (p = 0.977), and its ~20% missingness was
 quietly costing a quarter of the usable sample. Removing it recovered
 ~150K rows with no loss of explanatory power.)*
 
-<!-- IMAGE: assets/regression_district_effects.png — Regression-adjusted district price premium/discount -->
+<img width="803" height="707" alt="Screenshot 2026-07-30 at 2 39 53 PM" src="https://github.com/user-attachments/assets/9c02f6f3-808e-44e8-ae8a-9aa0e24efbcd" />
 
 **Temporal holdout — does this predict forward?**
 Everything above describes the past. So the framework was tested
@@ -122,13 +122,14 @@ locations over the undervalued, stable ones this framework targets. A
 static, backward-looking scoring system has a real blind spot during a
 regime shift, and that's the honest answer to question 3 above.
 
-<!-- IMAGE: assets/holdout_validation.png — Holdout validation: training-window TOP3 actual growth vs. Seoul average -->
+<img width="732" height="390" alt="Screenshot 2026-07-30 at 2 44 56 PM" src="https://github.com/user-attachments/assets/5b40de4e-4619-429d-af0f-1242c724b6ce" />
 
 Weight choice wasn't the problem, separately: a sensitivity check across
 7 weight scenarios (±0.2) shows the TOP3 ranking stays stable. The
 holdout miss reflects a genuine market shift, not a fragile model.
 
-<!-- IMAGE: assets/sensitivity_analysis.png — TOP5 ranking stability across weight scenarios -->
+<img width="898" height="346" alt="Screenshot 2026-07-30 at 2 45 53 PM" src="https://github.com/user-attachments/assets/646342bc-4078-47cf-9a60-ed85e8790050" />
+
 
 ---
 
@@ -143,8 +144,10 @@ holdout miss reflects a genuine market shift, not a fragile model.
   rebounded, pointing to thinner, higher-end-skewed demand rather than a
   broad recovery
 
-<!-- IMAGE: assets/market_overview.png — Market overview: price, price/pyeong, volume, and YoY growth by year -->
-<!-- IMAGE: assets/district_year_heatmap.png — District x year price-per-pyeong heatmap -->
+<img width="906" height="560" alt="Screenshot 2026-07-30 at 2 46 28 PM" src="https://github.com/user-attachments/assets/07c61cfb-26ba-427b-872f-997edcb8c468" />
+
+<img width="711" height="577" alt="Screenshot 2026-07-30 at 2 46 57 PM" src="https://github.com/user-attachments/assets/b4546824-8b66-4a67-af26-4a19807ab0f7" />
+
 
 ---
 
@@ -156,7 +159,7 @@ holdout miss reflects a genuine market shift, not a fragile model.
 | Balanced | Jungnang-gu (Row house) | Eunpyeong-gu (Row house) | Geumcheon-gu (Row house) |
 | Aggressive | Jungnang-gu (Officetel) | Geumcheon-gu (Officetel) | Jungnang-gu (Row house) |
 
-<!-- IMAGE: assets/top5_districts_by_profile.png — TOP5 districts by investor profile -->
+<img width="920" height="323" alt="Screenshot 2026-07-30 at 2 47 39 PM" src="https://github.com/user-attachments/assets/0a7606f6-1404-4578-93f2-3f72f5be2451" />
 
 **Dong-level drill-down.** Within each profile's TOP3, a further pass
 narrows to the specific dong (neighborhood) driving the signal —
@@ -235,25 +238,6 @@ seoul-real-estate-analysis/
 | Building-type drill-down | Re-scoring within each profile's TOP3 |
 | Dong-level drill-down | Neighborhood recommendation, confidence-flagged |
 | Final summary | TOP3 table per profile |
-
----
-
-## Image Placement Guide
-
-Where each exported chart goes, and the filename it should be saved as
-in `assets/` — matches the `<!-- IMAGE: -->` markers above.
-
-| Chart | Goes under section | Filename |
-|---|---|---|
-| Market overview (4-panel) | Market Trends | `market_overview.png` |
-| District × year heatmap | Market Trends | `district_year_heatmap.png` |
-| TOP5 districts by profile | Recommendations | `top5_districts_by_profile.png` |
-| Sensitivity line chart | Statistical Validation (holdout subsection) | `sensitivity_analysis.png` |
-| Regression district effects | Statistical Validation (regression subsection) | `regression_district_effects.png` |
-| Holdout validation bars | Statistical Validation (holdout subsection) | `holdout_validation.png` |
-| District metric bars (growth/vol/price) | Market Trends or a new subsection, your call | `district_metric_bars.png` |
-| Radar chart (profile comparison) | Recommendations | `profile_radar.png` |
-| Building-type / dong score charts | Recommendations | `bldg_type_scores.png`, `dong_level_scores.png` |
 
 ---
 
