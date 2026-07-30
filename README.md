@@ -1,332 +1,301 @@
 # Seoul Real Estate Investment Analysis (2018–2024)
 
-A data-driven framework for recommending district (gu) × building-type
-investment targets in Seoul, tailored to three investor risk profiles —
-Conservative, Balanced, and Aggressive — and stress-tested with
-statistical significance testing, regression-based decomposition, and
-out-of-sample validation.
+A framework for recommending district (gu) × building-type investment
+targets in Seoul, tailored to three investor risk profiles — Conservative,
+Balanced, Aggressive — and checked against statistical tests, a regression
+model, and an out-of-sample validation.
 
-> Built as a solo analytical project within a 4-person team submission
-> (see [Author & Contribution](#author--contribution)).
-
----
-
-## Project Overview
-
-| Item | Details |
-|------|---------|
-| **Period** | 2018 – 2024 (7 years) |
-| **Scope** | 25 districts (gu) × 4 building types in Seoul |
-| **Data** | Seoul Open Data Plaza — Real Estate Transaction Records (~800K transactions) |
-| **Approach** | Z-score composite scoring, validated with ANOVA, Welch's t-test, OLS regression, and a temporal holdout test |
-| **Deliverable** | TOP 3 district × building-type recommendations per investor profile, plus a district-level drill-down to specific dong (neighborhoods) |
+> Completed as part of a 4-person team project. All analysis, modeling,
+> and code in this repository are individual work — see
+> [Author & Contribution](#author--contribution).
 
 ---
 
-## Problem Statement
+## Overview
 
-Seoul's real estate market shows large price variation across districts,
-but most public analyses stop at a single metric — price. This project
-asks three questions and, critically, checks whether the answers hold up
-under statistical scrutiny and out-of-sample testing rather than stopping
-at a descriptive ranking:
-
-- Which districts offer the best risk-adjusted profile for each investor type?
-- Is a district's low average price a genuine location discount, or an
-  artifact of what's built there (older stock, smaller units)?
-- Would this scoring framework, built on 2018–2021 data, have actually
-  outperformed the market in 2022–2024?
+| | |
+|---|---|
+| Period | 2018–2024 (7 years) |
+| Scope | 25 districts × 4 building types |
+| Data | Seoul Open Data Plaza, real estate transactions (~800K rows) |
+| Method | Z-score composite scoring, tested with ANOVA, Welch's t-test, OLS regression, temporal holdout |
+| Output | TOP3 district × building-type picks per profile, drilled down to specific dong (neighborhoods) |
 
 ---
 
-## Analysis Framework
+## The Question
 
-Three metrics are computed per district, standardized via Z-score, and
-combined with investor-profile-specific weights:
+Seoul's real estate market varies a lot by district, but most public
+write-ups stop at comparing raw prices. This project asks three sharper
+questions instead:
 
-| Metric | Definition | Preferred Direction |
-|--------|-----------|---------------------|
-| **Growth** | Average annual price-per-pyeong growth rate, 2018–2024 | Higher ↑ |
-| **Price** | Current price-per-pyeong relative to the Seoul average | Lower (undervalued) ↓ |
-| **Volatility** | Standard deviation of annual growth rates | Lower (stable) ↓ |
+1. Which districts fit each investor profile once growth, price, and
+   volatility are all weighed together?
+2. When a district looks cheap, is that a real location discount — or
+   just a reflection of older, smaller housing stock?
+3. Would this scoring approach, built on 2018–2021 data, have actually
+   picked winners in 2022–2024?
 
-### Investor Profile Weights
+---
 
-| Profile | Growth | Price | Volatility | Total |
-|---------|--------|-------|------------|-------|
-| Conservative | 0.5 | 1.0 | **1.5** | 3.0 |
-| Balanced | 1.0 | 1.0 | 1.0 | 3.0 |
-| Aggressive | **1.5** | 1.0 | 0.5 | 3.0 |
+## Scoring Framework
 
-All profiles sum to 3.0, so scores stay on a comparable scale across profiles.
+Each district gets three metrics, standardized to Z-scores so they're
+comparable, then combined with profile-specific weights.
+
+| Metric | What it measures | Better direction |
+|---|---|---|
+| Growth | Avg. annual price/pyeong growth, 2018–2024 | Higher |
+| Price | Current price/pyeong vs. Seoul average | Lower |
+| Volatility | Std. dev. of annual growth | Lower |
+
+| Profile | Growth | Price | Volatility |
+|---|---|---|---|
+| Conservative | 0.5 | 1.0 | 1.5 |
+| Balanced | 1.0 | 1.0 | 1.0 |
+| Aggressive | 1.5 | 1.0 | 0.5 |
+
+Weights always sum to 3.0, so scores stay comparable across profiles.
 
 ---
 
 ## Statistical Validation
 
-Descriptive rankings alone can't distinguish a real pattern from noise.
-Three checks were added on top of the scoring framework:
+A descriptive ranking alone can't tell a real pattern from noise. Four
+checks were layered on top of the scoring framework.
 
-### 1. ANOVA — Is the district effect real, or just detectable?
+**ANOVA — is the district effect real?**
+F = 7,123.67, p ≈ 0, eta-squared = 0.186. With ~750K rows, near-zero
+p-values are almost automatic, so eta-squared is the number that matters:
+district explains about 19% of price variance. Real, but partial —
+building type, floor, age, and factors outside this data (school zones,
+transit, brand) make up the rest.
 
-| Test | Result |
-|------|--------|
-| F-statistic | 7,123.67 (p ≈ 0) |
-| Eta-squared (effect size) | **0.186** — district explains 18.6% of price variance |
+**Welch's t-test — TOP3 vs. everyone else**
+Each profile's TOP3 districts were tested against the remaining 22. All
+three profiles came back significant (p ≈ 0) — the picks aren't
+indistinguishable from the rest of the market.
 
-With ~750K transactions, a p-value near zero is close to guaranteed even
-for small differences — so effect size, not just significance, is the
-number that matters here. 18.6% says district is a real but partial
-driver of price; the remaining variance comes from building type, floor,
-age, and factors outside this dataset (school zones, transit access,
-building brand).
-
-### 2. Welch's t-test — TOP3 vs. the rest
-
-Each profile's TOP3 districts were tested against the remaining 22 using
-Welch's t-test (robust to unequal sample sizes across districts). All
-three profiles showed a statistically significant price gap (p ≈ 0),
-confirming the TOP3 picks aren't indistinguishable from the rest of the
-market.
-
-### 3. OLS Regression — Decomposing what actually drives price
+**OLS regression — what actually drives price?**
 
 ```
 log(price_per_pyeong) ~ district + building_type + building_age + year + floor
 ```
-- **R² = 0.543** (703,065 transactions)
-- Building age: **–1.33% per year** (p ≈ 0) — older stock trades at a
-  discount, net of location/type/floor, not a premium
-- District effects range from **–2.8% (Yongsan-gu)** to **–57.3%
-  (Dobong-gu)** relative to the priciest baseline district
 
-**Why this sometimes disagrees with the Z-score ranking, and why that's
-useful, not a bug:** the Z-score framework asks *"is this district's
-current average price low?"* The regression asks a sharper question:
-*"controlling for building type, floor, and age, is the location itself
-cheap?"* Dobong-gu ranks well on the first (low raw average → Conservative
-TOP2) but is the single lowest on the second — its low average price
-is driven mainly by an older, lower-rise housing mix, not necessarily an
-undervalued location. Both numbers are correct; they answer different
-investment questions, and the gap between them is itself informative.
+R² = 0.543 on 703,065 transactions. Building age: −1.33% per year
+(p ≈ 0) — older stock is a discount, not a redevelopment premium.
+District effects range from −2.8% (Yongsan-gu) to −57.3% (Dobong-gu)
+relative to the priciest baseline district.
 
-*(An earlier pass also included land area as a regressor; it showed a
-statistically insignificant, near-zero coefficient (p = 0.977) while its
-~20% missingness silently cost a quarter of the usable sample. It was
-dropped, which recovered ~150K rows without any loss of explanatory power.)*
+This sometimes disagrees with the Z-score ranking, and that's useful
+rather than a bug. The Z-score asks "is this district's average price
+low?" The regression asks a sharper version: "controlling for building
+type, floor, and age, is the *location* cheap?" Dobong-gu scores well on
+the first question (Conservative TOP2) but worst on the second — its low
+average price looks driven mainly by an older, lower-rise housing mix,
+not necessarily an undervalued location. Both numbers are correct; they
+just answer different questions.
 
-![Regression-adjusted district price premium/discount](assets/regression_district_effects.png)
+*(Land area was tested as a regressor and dropped — its coefficient was
+statistically meaningless (p = 0.977), and its ~20% missingness was
+quietly costing a quarter of the usable sample. Removing it recovered
+~150K rows with no loss of explanatory power.)*
 
-### 4. Temporal Holdout Validation — Does this framework predict forward?
+<!-- IMAGE: assets/regression_district_effects.png — Regression-adjusted district price premium/discount -->
 
-Every result above describes the past. The framework's real claim is
-forward-looking, so it was tested directly: TOP3 rankings were computed
-using **only 2018–2021 data**, then checked against actual district-level
-growth in **2022–2024** — years the scoring never saw.
+**Temporal holdout — does this predict forward?**
+Everything above describes the past. So the framework was tested
+directly: TOP3 rankings were built using only 2018–2021 data, then
+checked against what actually happened in 2022–2024.
 
 | Profile | TOP3 (from 2018–2021 data) | Actual growth, 2022–2024 | Seoul average |
-|---------|---------------------------|--------------------------|---------------|
+|---|---|---|---|
 | Conservative | Seongbuk-gu, Jungnang-gu, Guro-gu | 7.29% | 9.53% |
 | Balanced | Seongbuk-gu, Jungnang-gu, Geumcheon-gu | 5.61% | 9.53% |
 | Aggressive | Seongbuk-gu, Nowon-gu, Jungnang-gu | 5.32% | 9.53% |
 
-**All three profiles underperformed the Seoul average in the holdout window.**
-This is reported as-is rather than adjusted away: 2022–2024 gains
-concentrated in already-premium districts (Yongsan-gu, Seongdong-gu,
-Gangnam-gu all posted the largest absolute price increases in the
-district × year heatmap below) — a re-rating pattern where existing
-premium locations pulled further ahead, rather than the undervalued,
-low-volatility districts this framework is built to favor. It's a
-legitimate limitation of any static, backward-looking scoring system
-during a regime shift, not a data error, and it's the honest answer to
-the question this project set out to ask.
+All three profiles underperformed the Seoul average. This is reported
+as-is, not adjusted away. 2022–2024 gains concentrated in already-premium
+districts (Yongsan-gu, Seongdong-gu, Gangnam-gu posted the largest
+absolute increases) — a re-rating pattern that favored existing premium
+locations over the undervalued, stable ones this framework targets. A
+static, backward-looking scoring system has a real blind spot during a
+regime shift, and that's the honest answer to question 3 above.
 
-![Holdout validation — training-window TOP3 actual growth vs. Seoul average](assets/holdout_validation.png)
+<!-- IMAGE: assets/holdout_validation.png — Holdout validation: training-window TOP3 actual growth vs. Seoul average -->
 
-Weight robustness was checked separately from forward-looking validity —
-sensitivity analysis confirms the TOP3 ranking is stable across nearby
-weight choices (±0.2), so the holdout result above reflects a genuine
-market regime shift rather than the framework being fragile to its own
-weight settings:
+Weight choice wasn't the problem, separately: a sensitivity check across
+7 weight scenarios (±0.2) shows the TOP3 ranking stays stable. The
+holdout miss reflects a genuine market shift, not a fragile model.
 
-![TOP5 ranking stability across weight scenarios](assets/sensitivity_analysis.png)
+<!-- IMAGE: assets/sensitivity_analysis.png — TOP5 ranking stability across weight scenarios -->
 
 ---
 
-## Key Findings
+## Market Trends (2018–2024)
 
-### Seoul Market Trends (2018–2024)
-- Average price per pyeong rose from ~2,371 (10k KRW) in 2018 to
-  ~4,126 in 2024, with a clear inflection in 2022
-- Transaction volume fell **65%** from 2020 (174,126) to 2022 (61,399),
-  coinciding with the interest-rate hiking cycle
-- 2022 posted the only negative YoY growth (–1.9%), followed by a sharp
-  rebound (+19.6% in 2023) — volume stayed depressed even as price
-  rebounded, consistent with thinner, higher-end-skewed demand rather
-  than a broad recovery
+- Price/pyeong rose from ~2,371 (10k KRW) in 2018 to ~4,126 in 2024, with
+  a clear break in 2022
+- Transaction volume fell 65% from 2020 (174,126) to 2022 (61,399),
+  tracking the rate-hiking cycle
+- 2022 was the only year with negative YoY growth (−1.9%), followed by a
+  sharp rebound (+19.6% in 2023) — volume stayed low even as price
+  rebounded, pointing to thinner, higher-end-skewed demand rather than a
+  broad recovery
 
-![Seoul Real Estate Market Overview — price, price per pyeong, transaction volume, and YoY growth by year](assets/market_overview.png)
+<!-- IMAGE: assets/market_overview.png — Market overview: price, price/pyeong, volume, and YoY growth by year -->
+<!-- IMAGE: assets/district_year_heatmap.png — District x year price-per-pyeong heatmap -->
 
-![District × year price-per-pyeong heatmap](assets/district_year_heatmap.png)
+---
 
-### Investment Recommendations (District × Building Type)
+## Recommendations
 
 | Profile | TOP 1 | TOP 2 | TOP 3 |
-|---------|-------|-------|-------|
+|---|---|---|---|
 | Conservative | Jungnang-gu (Row house) | Gwanak-gu (Single-family) | Dobong-gu (Row house) |
 | Balanced | Jungnang-gu (Row house) | Eunpyeong-gu (Row house) | Geumcheon-gu (Row house) |
 | Aggressive | Jungnang-gu (Officetel) | Geumcheon-gu (Officetel) | Jungnang-gu (Row house) |
 
-![TOP5 districts by investor profile](assets/top5_districts_by_profile.png)
+<!-- IMAGE: assets/top5_districts_by_profile.png — TOP5 districts by investor profile -->
 
-### Dong-Level Drill-Down
-
-Within each profile's TOP3 districts, a further pass identifies the
-specific dong (neighborhood) driving the recommendation — e.g. Jungnang-gu's
-signal is concentrated in **Myeonmok-dong** and **Junghwa-dong** across
-all three profiles. Dong-level estimates rest on far fewer transactions
-than district-level ones, so any dong with fewer than 100 transactions
-or data missing in more than 2 of the 7 years is explicitly flagged as
-low-confidence rather than silently included.
-
-### So What?
-
-- **Jungnang-gu is the only district to rank in the TOP3 across all
-  three risk profiles** — it combines above-average growth (9.6%),
-  below-average volatility (5.0), and a 22% discount to the Seoul
-  average, a combination none of the other 24 districts match on all
-  three metrics simultaneously.
-- Conservative portfolios consistently favor low-volatility, undervalued
-  outer districts — a capital-preservation profile.
-- The regression shows this "undervaluation" is partly a housing-stock
-  composition effect, not purely a location discount — worth flagging
-  to anyone using this framework for an actual allocation decision.
-- The holdout validation is the most important finding in this project:
-  a scoring system tuned to historical patterns does not automatically
-  generalize through a market regime change, and that limitation is
-  worth stating plainly rather than optimizing the backtest away.
-
-### Business Impact
-
-For a conservative investor allocating toward Seoul residential
-property, this analysis narrows a 25-district, 4-building-type search
-space (100 combinations) down to a defensible shortlist — row houses in
-Jungnang-gu's Myeonmok-dong and Junghwa-dong — in a fraction of the time
-a manual district-by-district comparison would take, while surfacing
-two caveats a purely descriptive ranking would miss:
-
-1. **Composition risk** — the regression indicates part of Jungnang-gu's
-   apparent discount reflects its older, lower-rise housing stock rather
-   than pure location undervaluation, so due diligence should separate
-   "cheap because underrated" from "cheap because of what's built there."
-2. **Regime risk** — the same framework, built on pre-2022 data, would
-   have underperformed the broader Seoul market during the most recent
-   rate-hiking and re-rating cycle. A user should treat this as one input
-   alongside current macro conditions (rate trajectory, jeonse-to-price
-   ratio), not a standalone buy signal.
-
-This framing — a fast, defensible shortlist plus explicit, quantified
-caveats — is the practical output a static scoring model can responsibly
-deliver, and the honest boundary of what it can't.
+**Dong-level drill-down.** Within each profile's TOP3, a further pass
+narrows to the specific dong (neighborhood) driving the signal —
+Jungnang-gu's comes mainly from Myeonmok-dong and Junghwa-dong across all
+three profiles. Dong-level estimates rest on far fewer transactions than
+district-level ones, so any dong under 100 transactions, or missing data
+in more than 2 of the 7 years, is flagged low-confidence rather than
+folded in silently.
 
 ---
 
-## Project Structure
+## So What
+
+- Jungnang-gu is the only district in every profile's TOP3 — it's
+  simultaneously above-average growth (9.6%), below-average volatility
+  (5.0), and 22% cheaper than the Seoul average. No other district hits
+  all three at once.
+- Conservative portfolios consistently land on low-volatility,
+  undervalued outer districts — a capital-preservation pattern.
+- Part of that "undervaluation" is a housing-stock composition effect,
+  not a pure location discount (see the regression above) — worth
+  knowing before treating it as a buy signal.
+- The holdout miss is the most important result in this project: a
+  scoring system tuned to historical patterns doesn't automatically
+  carry through a regime change, and that's worth saying plainly.
+
+## Business Impact
+
+For a conservative investor, this analysis narrows a 100-combination
+search space (25 districts × 4 building types) down to a specific,
+defensible shortlist — row houses in Jungnang-gu's Myeonmok-dong and
+Junghwa-dong — far faster than a manual district-by-district comparison,
+while flagging two things a plain ranking would miss:
+
+- **Composition risk.** Jungnang-gu's discount is partly explained by
+  older, lower-rise housing stock, not pure location undervaluation.
+  Due diligence should separate "underrated" from "cheap because of what's built there."
+- **Regime risk.** The same framework, trained on pre-2022 data, would
+  have underperformed the broader market in the most recent cycle. Best
+  used as one input alongside current rate and jeonse-to-price
+  conditions — not a standalone buy signal.
+
+A fast shortlist plus explicit, quantified caveats is what a static
+scoring model can responsibly deliver — and the honest edge of what it can't.
+
+---
+
+## Repo Structure
 
 ```
 seoul-real-estate-analysis/
-├── data/                                    # Yearly CSVs (not tracked in git)
+├── data/                                  # yearly CSVs, not tracked in git
 │   ├── 2018.csv
 │   ├── ...
 │   └── 2024.csv
 ├── notebooks/
-│   └── seoul_real_estate_analysis.ipynb     # Full pipeline, single notebook
-├── assets/                                  # Exported chart images used in this README
+│   └── seoul_real_estate_analysis.ipynb   # full pipeline, single notebook
+├── assets/                                # chart images referenced in this README
 └── README.md
 ```
 
-### Notebook Contents
+**Notebook sections**
 
 | Section | Content |
-|---------|---------|
-| Data Loading & Cleaning | Merge 7 yearly CSVs, drop cancellations, validate `year_built`, engineer `price_per_pyeong` / `building_age` |
-| Market-Wide EDA | Raw price distribution, building-type breakdown, annual trend dashboard |
-| Outlier Treatment | IQR-based removal for cross-district comparison (raw data preserved for trend analysis) |
-| District Metrics | Growth, volatility, relative price ratio per district |
-| **ANOVA** | District effect significance + eta-squared |
-| Z-Score Scoring | Investor-profile composite scores, metric independence check |
-| **Welch's t-test** | TOP3 vs. rest significance test, per profile |
-| **OLS Regression** | Price determinant decomposition (district / building type / age / floor / year) |
-| Sensitivity Analysis | TOP3 stability across 7 weight scenarios (±0.2 range) |
-| **Temporal Holdout Validation** | Train on 2018–2021, test against actual 2022–2024 outcomes |
-| Building-Type Drill-Down | District × building-type re-scoring within each profile's TOP3 |
-| Dong-Level Drill-Down | Neighborhood-level recommendation with confidence flagging |
-| Final Recommendations | TOP3 summary table per profile |
-
----
-
-## Visualizations
-
-All charts below are referenced inline above; the full set, with the
-filename each should be saved as in `assets/`:
-
-| Chart | Asset filename |
 |---|---|
-| Market trend dashboard (price, price/pyeong, volume, YoY growth) | `assets/market_overview.png` |
-| District × year price heatmap | `assets/district_year_heatmap.png` |
-| TOP5 districts by investor profile | `assets/top5_districts_by_profile.png` |
-| Sensitivity analysis line chart (weight robustness) | `assets/sensitivity_analysis.png` |
-| Regression-adjusted district premium/discount | `assets/regression_district_effects.png` |
-| Holdout validation (TOP3 actual growth vs. Seoul average) | `assets/holdout_validation.png` |
-| District comparison bars (growth / volatility / relative price) | `assets/district_metric_bars.png` |
-| Radar chart — metric emphasis by profile | `assets/profile_radar.png` |
-| Building-type and dong-level score charts | `assets/bldg_type_scores.png`, `assets/dong_level_scores.png` |
+| Data loading & cleaning | Merge 7 yearly CSVs, drop cancellations, validate `year_built`, engineer `price_per_pyeong` / `building_age` |
+| Market-wide EDA | Raw price distribution, building-type breakdown, annual trend dashboard |
+| Outlier treatment | IQR removal for cross-district comparison (raw data kept for trend analysis) |
+| District metrics | Growth, volatility, relative price ratio per district |
+| ANOVA | District effect significance + eta-squared |
+| Z-score scoring | Composite scores per profile, metric independence check |
+| Welch's t-test | TOP3 vs. rest significance, per profile |
+| OLS regression | Price determinant decomposition |
+| Sensitivity analysis | TOP3 stability across 7 weight scenarios |
+| Temporal holdout | Train on 2018–2021, test against actual 2022–2024 |
+| Building-type drill-down | Re-scoring within each profile's TOP3 |
+| Dong-level drill-down | Neighborhood recommendation, confidence-flagged |
+| Final summary | TOP3 table per profile |
 
 ---
 
-## What Makes This Project Different
+## Image Placement Guide
 
-- Goes beyond descriptive ranking — every headline result is checked
-  against a formal significance test, an alternative model specification,
-  or an out-of-sample validation before being reported
-- Reports a validation failure (the holdout result) instead of adjusting
-  the framework until it passes — the limitation is treated as a finding
+Where each exported chart goes, and the filename it should be saved as
+in `assets/` — matches the `<!-- IMAGE: -->` markers above.
+
+| Chart | Goes under section | Filename |
+|---|---|---|
+| Market overview (4-panel) | Market Trends | `market_overview.png` |
+| District × year heatmap | Market Trends | `district_year_heatmap.png` |
+| TOP5 districts by profile | Recommendations | `top5_districts_by_profile.png` |
+| Sensitivity line chart | Statistical Validation (holdout subsection) | `sensitivity_analysis.png` |
+| Regression district effects | Statistical Validation (regression subsection) | `regression_district_effects.png` |
+| Holdout validation bars | Statistical Validation (holdout subsection) | `holdout_validation.png` |
+| District metric bars (growth/vol/price) | Market Trends or a new subsection, your call | `district_metric_bars.png` |
+| Radar chart (profile comparison) | Recommendations | `profile_radar.png` |
+| Building-type / dong score charts | Recommendations | `bldg_type_scores.png`, `dong_level_scores.png` |
+
+---
+
+## What's Different About This One
+
+- Every headline result is checked against a significance test, an
+  alternative model, or an out-of-sample test — not left as a
+  descriptive ranking
+- The holdout failure is reported, not tuned away — a limitation
+  treated as a finding
 - Decomposes *why* a district looks cheap (location vs. housing-stock
-  composition) rather than stopping at "cheap"
-- Drills down two levels of geographic resolution (gu → dong) with
-  explicit confidence flagging rather than presenting neighborhood-level
-  numbers at the same certainty as district-level ones
+  mix) instead of stopping at "cheap"
+- Drills down two levels of geography (gu → dong) with confidence
+  flagging, instead of presenting neighborhood numbers at the same
+  certainty as district-level ones
 
 ---
 
-## Limitations & Future Work
+## Limitations & Next Steps
 
-| Limitation | Potential Improvement |
-|-----------|----------------------|
-| No macroeconomic variables | Add interest rate and jeonse-to-price ratio data — directly relevant given the 2022 rate-hike inflection observed in this dataset |
-| Static scoring framework, shown to underperform in the 2022–2024 holdout | Explore a regime-aware model (e.g. separate scoring under rising vs. falling rate environments) |
-| No forward-looking indicators | Incorporate leading indicators (construction permits, population inflow, transit/redevelopment plans) |
-| Dong-level estimates thin for smaller neighborhoods | Extend the transaction window or apply shrinkage estimation for low-volume dong |
-| Single train/holdout split | Not enough years in this dataset for a multi-fold backtest; a longer historical window would allow one |
+| Limitation | Next step |
+|---|---|
+| No macro variables | Add interest rate, jeonse-to-price ratio — directly relevant given the 2022 inflection in this data |
+| Static scoring, underperformed in the 2022–2024 holdout | Try a regime-aware model (separate scoring for rate-rising vs. rate-falling periods) |
+| No forward-looking indicators | Add construction permits, population inflow, transit/redevelopment plans |
+| Dong-level estimates thin for small neighborhoods | Extend the window, or use shrinkage estimation |
+| Single train/holdout split | Not enough years for multiple folds; a longer history would allow it |
 
 ---
 
 ## Author & Contribution
 
-**Joshua Kim**
-Data Analyst | Marketing · E-commerce · Business Analytics
+**Joshua Kim** — Data Analyst · Marketing · E-commerce · Business Analytics
 
-This was completed as a 4-person team project; all data analysis, the
-scoring methodology, statistical validation, and code in this repository
-are my individual work. Team contribution beyond the analysis was limited
-to the presentation deck.
+Completed as a 4-person team project. All data analysis, scoring
+methodology, statistical validation, and code here are individual work;
+team contribution beyond the analysis was the presentation deck.
 
-📧 Jkim43844@gmail.com
-🔗 [LinkedIn](https://www.linkedin.com/in/joshua-kim-87b478263/)
+📧 Jkim43844@gmail.com · 🔗 [LinkedIn](https://www.linkedin.com/in/joshua-kim-87b478263/)
 
 ---
 
 ## License
 
-This project is for portfolio and educational purposes.
-Data source: [Seoul Open Data Plaza](https://data.seoul.go.kr/) (Public Domain)
+Portfolio and educational use. Data: [Seoul Open Data Plaza](https://data.seoul.go.kr/) (Public Domain)
