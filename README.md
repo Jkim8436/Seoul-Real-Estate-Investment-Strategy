@@ -4,7 +4,7 @@
 
 A framework for recommending district (gu) × building-type investment targets in Seoul, tailored to three investor risk profiles — Conservative, Balanced, Aggressive — checked against statistical tests, a regression model, and an out-of-sample validation, with an interactive dashboard for screening the results.
 
-> Completed as part of a 4-person team project. All analysis, modeling, and code in this repository are individual work — see [Individual Contribution](#individual-contribution).
+Solo project — data collection through analysis, modeling, statistical validation, and the dashboard are all individual work.
 
 ---
 
@@ -216,12 +216,6 @@ jupyter notebook Seoul_Real_Estate_Investment_Project.ipynb
 | No forward-looking indicators | Add construction permits, population inflow, transit/redevelopment plans |
 | Dong-level estimates thin for small neighborhoods | Extend the window, or use shrinkage estimation |
 | Single train/holdout split | Not enough years for multiple folds; a longer history would allow it |
-
----
-
-## Individual Contribution
-
-Completed as a 4-person team project. All data analysis, scoring methodology, statistical validation, and code in this repository — including the dashboard — are the author's individual work; team contribution beyond the analysis was the presentation deck.
 
 ---
 
